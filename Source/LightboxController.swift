@@ -1,4 +1,6 @@
 import UIKit
+import GoogleMobileAds
+
 
 public protocol LightboxControllerPageDelegate: class {
 
@@ -18,7 +20,12 @@ public protocol LightboxControllerTouchDelegate: class {
 open class LightboxController: UIViewController {
 
   // MARK: - Internal views
-
+    lazy var bannerView: GADBannerView = { [unowned self] in
+        let bannerView = GADBannerView(adSize: kGADAdSizeSmartBannerPortrait)
+        return bannerView
+    }()
+    
+    
   lazy var scrollView: UIScrollView = { [unowned self] in
     let scrollView = UIScrollView()
     scrollView.isPagingEnabled = false
@@ -122,7 +129,7 @@ open class LightboxController: UIViewController {
 
   open var spacing: CGFloat = 20 {
     didSet {
-      configureLayout(view.bounds.size)
+      configureLayout(CGSize(width: view.bounds.size.width, height: view.bounds.size.height - LightboxConfig.adHeight))
     }
   }
 
@@ -175,24 +182,60 @@ open class LightboxController: UIViewController {
 
     [scrollView, overlayView, headerView, footerView].forEach { view.addSubview($0) }
     overlayView.addGestureRecognizer(overlayTapGestureRecognizer)
-
     configurePages(initialImages)
-
     goTo(initialPage, animated: false)
+    
+    // Banner
+    addBannerView()
   }
+    
+    
+    func addBannerView() {
+        bannerView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(bannerView)
+        view.addConstraints(
+            [NSLayoutConstraint(item: bannerView,
+                                attribute: .bottom,
+                                relatedBy: .equal,
+                                toItem: view,
+                                attribute: .bottom,
+                                multiplier: 1,
+                                constant: 0),
+             NSLayoutConstraint(item: bannerView,
+                                attribute: .centerX,
+                                relatedBy: .equal,
+                                toItem: view,
+                                attribute: .centerX,
+                                multiplier: 1,
+                                constant: 0)
+            ])
+        bannerView.adUnitID = LightboxConfig.adUnitId
+        bannerView.rootViewController = self
+        bannerView.load(GADRequest())
+    }
 
   open override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     if !presented {
       presented = true
-      configureLayout(view.bounds.size)
+      configureLayout(CGSize(width: view.bounds.size.width, height: view.bounds.size.height - LightboxConfig.adHeight))
     }
   }
 
   open override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
+    
 
-    scrollView.frame = view.bounds
+    scrollView.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: view.bounds.height - LightboxConfig.adHeight)
+    
+//    bannerView.frame.size = CGSize(
+//        width: view.bounds.width,
+//        height: LightboxConfig.adHeight
+//    )
+//    bannerView.frame.origin = CGPoint(
+//        x: view.bounds.width,
+//        y: view.bounds.height - LightboxConfig.adHeight
+//    )
     footerView.frame.size = CGSize(
       width: view.bounds.width,
       height: 100
@@ -200,7 +243,7 @@ open class LightboxController: UIViewController {
 
     footerView.frame.origin = CGPoint(
       x: 0,
-      y: view.bounds.height - footerView.frame.height
+      y: view.bounds.height - LightboxConfig.adHeight - footerView.frame.height
     )
 
     headerView.frame = CGRect(
@@ -241,7 +284,7 @@ open class LightboxController: UIViewController {
       pageViews.append(pageView)
     }
 
-    configureLayout(view.bounds.size)
+    configureLayout(CGSize(width: view.bounds.size.width, height: view.bounds.size.height - LightboxConfig.adHeight))
   }
 
   func reconfigurePagesForPreload() {
@@ -439,7 +482,8 @@ extension LightboxController: HeaderViewDelegate {
     self.pageViews.remove(at: prevIndex).removeFromSuperview()
 
     DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.5) {
-      self.configureLayout(self.view.bounds.size)
+        let size = CGSize(width: self.view.bounds.width, height: self.view.bounds.height - LightboxConfig.adHeight)
+      self.configureLayout(size)
       self.currentPage = Int(self.scrollView.contentOffset.x / self.view.bounds.width)
       deleteButton.isEnabled = true
     }

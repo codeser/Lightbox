@@ -13,7 +13,10 @@ Pod::Spec.new do |s|
   s.ios.resource = 'Resources/Lightbox.bundle'
 
   s.frameworks = 'UIKit', 'AVFoundation', 'AVKit'
+  s.static_framework = true
   s.dependency 'Imaginary', '~> 4.0'
+  s.dependency 'Google-Mobile-Ads-SDK', '~> 7.37'
+
 
   s.pod_target_xcconfig = { 'SWIFT_VERSION' => '4.2' }
 end

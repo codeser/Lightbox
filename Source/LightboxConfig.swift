@@ -2,10 +2,16 @@ import UIKit
 import AVKit
 import AVFoundation
 import Imaginary
+import GoogleMobileAds
+
 
 public class LightboxConfig {
   /// Whether to show status bar while Lightbox is presented
   public static var hideStatusBar = true
+    
+    public static var adHeight: CGFloat = 50
+    public static var adUnitId: String = "ca-app-pub-3940256099942544/2934735716"
+    
 
   /// Provide a closure to handle selected video
   public static var handleVideo: (_ from: UIViewController, _ videoURL: URL) -> Void = { from, videoURL in
