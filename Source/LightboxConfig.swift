@@ -9,7 +9,7 @@ public class LightboxConfig {
   /// Whether to show status bar while Lightbox is presented
   public static var hideStatusBar = true
     
-    public static var adHeight: CGFloat = 50
+    public static var adHeight: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 90 : 50
     public static var adUnitId: String = "ca-app-pub-3940256099942544/2934735716"
     
 
