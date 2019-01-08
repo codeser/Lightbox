@@ -10,7 +10,7 @@ public class LightboxConfig {
   public static var hideStatusBar = true
     
     public static var adHeight: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 90 : 50
-    public static var adUnitId: String = "ca-app-pub-3940256099942544/2934735716"
+    public static var adUnitId: String = "ca-app-pub-5674319229400317/7587051388"
     
 
   /// Provide a closure to handle selected video
