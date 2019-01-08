@@ -31,7 +31,15 @@ open class HeaderView: UIView {
     button.isHidden = !LightboxConfig.CloseButton.enabled
 
     return button
-  }()
+    }()
+    
+    open fileprivate(set) lazy var pageLabel: UILabel = { [unowned self] in
+        let label = UILabel(frame: CGRect.zero)
+        label.isHidden = !LightboxConfig.PageIndicator.enabled
+        label.numberOfLines = 1
+        
+        return label
+    }()
 
   open fileprivate(set) lazy var deleteButton: UIButton = { [unowned self] in
     let title = NSAttributedString(
@@ -63,13 +71,13 @@ open class HeaderView: UIView {
   weak var delegate: HeaderViewDelegate?
 
   // MARK: - Initializers
-
+    
   public init() {
     super.init(frame: CGRect.zero)
-
     backgroundColor = UIColor.clear
+    backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.9)
 
-    [closeButton, deleteButton].forEach { addSubview($0) }
+    [pageLabel, closeButton, deleteButton].forEach { addSubview($0) }
   }
 
   public required init?(coder aDecoder: NSCoder) {
@@ -82,9 +90,17 @@ open class HeaderView: UIView {
     delegate?.headerView(self, didPressDeleteButton: button)
   }
 
-  @objc func closeButtonDidPress(_ button: UIButton) {
-    delegate?.headerView(self, didPressCloseButton: button)
-  }
+    @objc func closeButtonDidPress(_ button: UIButton) {
+        delegate?.headerView(self, didPressCloseButton: button)
+    }
+    
+    func updatePage(_ page: Int, _ numberOfPages: Int) {
+        let text = "\(page)/\(numberOfPages)"
+        
+        pageLabel.attributedText = NSAttributedString(string: text,
+                                                      attributes: LightboxConfig.PageIndicator.textAttributes)
+        pageLabel.sizeToFit()
+    }
 }
 
 // MARK: - LayoutConfigurable
@@ -101,13 +117,18 @@ extension HeaderView: LayoutConfigurable {
     }
 
     closeButton.frame.origin = CGPoint(
-      x: bounds.width - closeButton.frame.width - 17,
-      y: topPadding
+      x: 17,
+      y: topPadding + (44 - closeButton.frame.height) / 2
+    )
+    
+    pageLabel.frame.origin = CGPoint(
+        x: (frame.width - pageLabel.frame.width) / 2,
+        y: topPadding + (44 - pageLabel.frame.height) / 2
     )
 
     deleteButton.frame.origin = CGPoint(
-      x: 17,
-      y: topPadding
+      x: bounds.width - closeButton.frame.width - 17,
+      y: topPadding + (44 - deleteButton.frame.height) / 2
     )
   }
 }

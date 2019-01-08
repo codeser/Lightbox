@@ -10,7 +10,7 @@ open class FooterView: UIView {
   open fileprivate(set) lazy var infoLabel: InfoLabel = { [unowned self] in
     let label = InfoLabel(text: "")
     label.isHidden = !LightboxConfig.InfoLabel.enabled
-
+    label.textAlignment = .center
     label.textColor = LightboxConfig.InfoLabel.textColor
     label.isUserInteractionEnabled = true
     label.delegate = self
@@ -18,23 +18,23 @@ open class FooterView: UIView {
     return label
   }()
 
-  open fileprivate(set) lazy var pageLabel: UILabel = { [unowned self] in
-    let label = UILabel(frame: CGRect.zero)
-    label.isHidden = !LightboxConfig.PageIndicator.enabled
-    label.numberOfLines = 1
+//  open fileprivate(set) lazy var pageLabel: UILabel = { [unowned self] in
+//    let label = UILabel(frame: CGRect.zero)
+//    label.isHidden = !LightboxConfig.PageIndicator.enabled
+//    label.numberOfLines = 1
+//
+//    return label
+//  }()
 
-    return label
-  }()
+//  open fileprivate(set) lazy var separatorView: UIView = { [unowned self] in
+//    let view = UILabel(frame: CGRect.zero)
+//    view.isHidden = !LightboxConfig.PageIndicator.enabled
+//    view.backgroundColor = LightboxConfig.PageIndicator.separatorColor
+//
+//    return view
+//  }()
 
-  open fileprivate(set) lazy var separatorView: UIView = { [unowned self] in
-    let view = UILabel(frame: CGRect.zero)
-    view.isHidden = !LightboxConfig.PageIndicator.enabled
-    view.backgroundColor = LightboxConfig.PageIndicator.separatorColor
-
-    return view
-  }()
-
-  let gradientColors = [UIColor(hex: "040404").withAlphaComponent(0.1), UIColor(hex: "040404")]
+  let gradientColors = [UIColor(hex: "040404").withAlphaComponent(0.8), UIColor(hex: "040404")]
   open weak var delegate: FooterViewDelegate?
 
   // MARK: - Initializers
@@ -45,7 +45,7 @@ open class FooterView: UIView {
     backgroundColor = UIColor.clear
     _ = addGradientLayer(gradientColors)
 
-    [pageLabel, infoLabel, separatorView].forEach { addSubview($0) }
+    [infoLabel].forEach { addSubview($0) }
   }
 
   public required init?(coder aDecoder: NSCoder) {
@@ -58,13 +58,13 @@ open class FooterView: UIView {
     expand ? infoLabel.expand() : infoLabel.collapse()
   }
 
-  func updatePage(_ page: Int, _ numberOfPages: Int) {
-    let text = "\(page)/\(numberOfPages)"
-
-    pageLabel.attributedText = NSAttributedString(string: text,
-      attributes: LightboxConfig.PageIndicator.textAttributes)
-    pageLabel.sizeToFit()
-  }
+//  func updatePage(_ page: Int, _ numberOfPages: Int) {
+//    let text = "\(page)/\(numberOfPages)"
+//
+////    pageLabel.attributedText = NSAttributedString(string: text,
+////      attributes: LightboxConfig.PageIndicator.textAttributes)
+////    pageLabel.sizeToFit()
+//  }
 
   func updateText(_ text: String) {
     infoLabel.fullText = text
@@ -79,28 +79,28 @@ open class FooterView: UIView {
   open override func layoutSubviews() {
     super.layoutSubviews()
 
-    do {
-      let bottomPadding: CGFloat
-      if #available(iOS 11, *) {
-        bottomPadding = safeAreaInsets.bottom
-      } else {
-        bottomPadding = 0
-      }
+//    do {
+//      let bottomPadding: CGFloat
+//      if #available(iOS 11, *) {
+//        bottomPadding = safeAreaInsets.bottom
+//      } else {
+//        bottomPadding = 0
+//      }
+//
+////      pageLabel.frame.origin = CGPoint(
+////        x: (frame.width - pageLabel.frame.width) / 2,
+////        y: frame.height - pageLabel.frame.height - 2 - bottomPadding
+////      )
+//    }
 
-      pageLabel.frame.origin = CGPoint(
-        x: (frame.width - pageLabel.frame.width) / 2,
-        y: frame.height - pageLabel.frame.height - 2 - bottomPadding
-      )
-    }
+//    separatorView.frame = CGRect(
+//      x: 0,
+//      y: pageLabel.frame.minY - 2.5,
+//      width: frame.width,
+//      height: 0.5
+//    )
 
-    separatorView.frame = CGRect(
-      x: 0,
-      y: pageLabel.frame.minY - 2.5,
-      width: frame.width,
-      height: 0.5
-    )
-
-    infoLabel.frame.origin.y = separatorView.frame.minY - infoLabel.frame.height - 15
+    infoLabel.frame.origin.y = 5
 
     resizeGradientLayer()
   }

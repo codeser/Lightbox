@@ -90,7 +90,7 @@ open class LightboxController: UIViewController {
   open fileprivate(set) var currentPage = 0 {
     didSet {
       currentPage = min(numberOfPages - 1, max(0, currentPage))
-      footerView.updatePage(currentPage + 1, numberOfPages)
+      headerView.updatePage(currentPage + 1, numberOfPages)
       footerView.updateText(pageViews[currentPage].image.text)
 
       if currentPage == numberOfPages - 1 {
@@ -209,6 +209,7 @@ open class LightboxController: UIViewController {
                                 multiplier: 1,
                                 constant: 0)
             ])
+        bannerView.backgroundColor = .black
         bannerView.adUnitID = LightboxConfig.adUnitId
         bannerView.rootViewController = self
         bannerView.load(GADRequest())
@@ -224,21 +225,10 @@ open class LightboxController: UIViewController {
 
   open override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
-    
-
     scrollView.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: view.bounds.height - LightboxConfig.adHeight)
-    
-//    bannerView.frame.size = CGSize(
-//        width: view.bounds.width,
-//        height: LightboxConfig.adHeight
-//    )
-//    bannerView.frame.origin = CGPoint(
-//        x: view.bounds.width,
-//        y: view.bounds.height - LightboxConfig.adHeight
-//    )
     footerView.frame.size = CGSize(
       width: view.bounds.width,
-      height: 100
+      height: 50
     )
 
     footerView.frame.origin = CGPoint(
@@ -246,11 +236,17 @@ open class LightboxController: UIViewController {
       y: view.bounds.height - LightboxConfig.adHeight - footerView.frame.height
     )
 
+    var topPadding: CGFloat = 20
+    if #available(iOS 11.0, *) {
+        if let window = UIApplication.shared.keyWindow {
+            topPadding = window.safeAreaInsets.top
+        }
+    }
     headerView.frame = CGRect(
       x: 0,
-      y: 16,
+      y: 0,
       width: view.bounds.width,
-      height: 100
+      height: 44 + topPadding
     )
   }
 
@@ -439,8 +435,7 @@ extension LightboxController: PageViewDelegate {
   }
 
   func pageViewDidZoom(_ pageView: PageView) {
-    let duration = pageView.hasZoomed ? 0.1 : 0.5
-    toggleControls(pageView: pageView, visible: !pageView.hasZoomed, duration: duration, delay: 0.5)
+
   }
 
   func pageView(_ pageView: PageView, didTouchPlayButton videoURL: URL) {
@@ -448,8 +443,6 @@ extension LightboxController: PageViewDelegate {
   }
 
   func pageViewDidTouch(_ pageView: PageView) {
-    guard !pageView.hasZoomed else { return }
-
     imageTouchDelegate?.lightboxController(self, didTouch: images[currentPage], at: currentPage)
 
     let visible = (headerView.alpha == 1.0)
@@ -462,32 +455,21 @@ extension LightboxController: PageViewDelegate {
 extension LightboxController: HeaderViewDelegate {
 
   func headerView(_ headerView: HeaderView, didPressDeleteButton deleteButton: UIButton) {
-    deleteButton.isEnabled = false
-
-    guard numberOfPages != 1 else {
-      pageViews.removeAll()
-      self.headerView(headerView, didPressCloseButton: headerView.closeButton)
-      return
-    }
-
-    let prevIndex = currentPage
-
-    if currentPage == numberOfPages - 1 {
-      previous()
-    } else {
-      next()
-      currentPage -= 1
-    }
-
-    self.pageViews.remove(at: prevIndex).removeFromSuperview()
-
-    DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.5) {
-        let size = CGSize(width: self.view.bounds.width, height: self.view.bounds.height - LightboxConfig.adHeight)
-      self.configureLayout(size)
-      self.currentPage = Int(self.scrollView.contentOffset.x / self.view.bounds.width)
-      deleteButton.isEnabled = true
-    }
+    shareFlyer()
   }
+    
+    func shareFlyer() {
+        if images.count <= 0 {
+            return
+        }
+        let shareText = (images.first?.text ?? "").replacingOccurrences(of: "\n", with: " Flyer\n") + "\n\n" + "View the full flyer in Flyerify app: https://flyerify.page.link/download"
+        var items: [Any] = [shareText]
+        if let theImage = pageViews[currentPage].imageView.image {
+            items.append(theImage)
+        }
+        let activityController = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        present(activityController, animated: true, completion: nil)
+    }
 
   func headerView(_ headerView: HeaderView, didPressCloseButton closeButton: UIButton) {
     closeButton.isEnabled = false
