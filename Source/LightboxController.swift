@@ -462,7 +462,7 @@ extension LightboxController: HeaderViewDelegate {
         if images.count <= 0 {
             return
         }
-        let shareText = (images.first?.text ?? "").replacingOccurrences(of: "\n", with: " Flyer\n") + "\n\n" + "View the full flyer in Flyerify app: https://flyerify.page.link/download"
+        let shareText = (images.first?.text ?? "").replacingOccurrences(of: "\n", with: " Flyer\n") + "\n\n" + "View the full flyer on the Flyerify app: https://flyerify.page.link/download"
         var items: [Any] = [shareText]
         if let theImage = pageViews[currentPage].imageView.image {
             items.append(theImage)
