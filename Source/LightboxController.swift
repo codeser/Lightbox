@@ -113,25 +113,32 @@ open class LightboxController: UIViewController {
     return pageViews.count
   }
 
-  open var dynamicBackground: Bool = false {
-    didSet {
-      if dynamicBackground == true {
-        effectView.frame = view.frame
-        backgroundView.frame = effectView.frame
-        view.insertSubview(effectView, at: 0)
-        view.insertSubview(backgroundView, at: 0)
-      } else {
-        effectView.removeFromSuperview()
-        backgroundView.removeFromSuperview()
-      }
+    open var dynamicBackground: Bool = false {
+        didSet {
+            if dynamicBackground == true {
+                effectView.frame = view.frame
+                backgroundView.frame = effectView.frame
+                view.insertSubview(effectView, at: 0)
+                view.insertSubview(backgroundView, at: 0)
+            } else {
+                effectView.removeFromSuperview()
+                backgroundView.removeFromSuperview()
+            }
+        }
     }
-  }
-
-  open var spacing: CGFloat = 20 {
-    didSet {
-      configureLayout(CGSize(width: view.bounds.size.width, height: view.bounds.size.height - LightboxConfig.adHeight))
+    
+    
+    open var spacing: CGFloat = 20 {
+        didSet {
+            var bottomPadding: CGFloat
+            if #available(iOS 11.0, *) {
+                bottomPadding = view.safeAreaInsets.bottom
+            } else {
+                bottomPadding = 0
+            }
+            configureLayout(CGSize(width: view.bounds.size.width, height: view.bounds.size.height - LightboxConfig.adHeight - bottomPadding))
+        }
     }
-  }
 
   open var images: [LightboxImage] {
     get {
@@ -193,18 +200,25 @@ open class LightboxController: UIViewController {
     func addBannerView() {
         bannerView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(bannerView)
+        var guide: Any?
+        if #available(iOS 11.0, *) {
+            guide = view.safeAreaLayoutGuide
+        } else {
+            // Fallback on earlier versions
+            guide = view
+        }
         view.addConstraints(
             [NSLayoutConstraint(item: bannerView,
                                 attribute: .bottom,
                                 relatedBy: .equal,
-                                toItem: view,
+                                toItem: guide,
                                 attribute: .bottom,
                                 multiplier: 1,
                                 constant: 0),
              NSLayoutConstraint(item: bannerView,
                                 attribute: .centerX,
                                 relatedBy: .equal,
-                                toItem: view,
+                                toItem: guide,
                                 attribute: .centerX,
                                 multiplier: 1,
                                 constant: 0)
@@ -219,21 +233,32 @@ open class LightboxController: UIViewController {
     super.viewDidAppear(animated)
     if !presented {
       presented = true
-      configureLayout(CGSize(width: view.bounds.size.width, height: view.bounds.size.height - LightboxConfig.adHeight))
+        var bottomPadding: CGFloat
+        if #available(iOS 11.0, *) {
+            bottomPadding = view.safeAreaInsets.bottom
+        } else {
+            bottomPadding = 0
+        }
+      configureLayout(CGSize(width: view.bounds.size.width, height: view.bounds.size.height - LightboxConfig.adHeight - bottomPadding))
     }
   }
 
   open override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
-    scrollView.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: view.bounds.height - LightboxConfig.adHeight)
+    var bottomPadding: CGFloat
+    if #available(iOS 11.0, *) {
+        bottomPadding = view.safeAreaInsets.bottom
+    } else {
+        bottomPadding = 0
+    }
+    scrollView.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: view.bounds.height - LightboxConfig.adHeight - bottomPadding)
     footerView.frame.size = CGSize(
       width: view.bounds.width,
       height: 50
     )
-
     footerView.frame.origin = CGPoint(
       x: 0,
-      y: view.bounds.height - LightboxConfig.adHeight - footerView.frame.height
+      y: view.bounds.height - LightboxConfig.adHeight - footerView.frame.height - bottomPadding
     )
 
     var topPadding: CGFloat = 20
@@ -279,8 +304,13 @@ open class LightboxController: UIViewController {
       scrollView.addSubview(pageView)
       pageViews.append(pageView)
     }
-
-    configureLayout(CGSize(width: view.bounds.size.width, height: view.bounds.size.height - LightboxConfig.adHeight))
+    var bottomPadding: CGFloat
+    if #available(iOS 11.0, *) {
+        bottomPadding = view.safeAreaInsets.bottom
+    } else {
+        bottomPadding = 0
+    }
+    configureLayout(CGSize(width: view.bounds.size.width, height: view.bounds.size.height - LightboxConfig.adHeight - bottomPadding))
   }
 
   func reconfigurePagesForPreload() {
@@ -455,10 +485,10 @@ extension LightboxController: PageViewDelegate {
 extension LightboxController: HeaderViewDelegate {
 
   func headerView(_ headerView: HeaderView, didPressDeleteButton deleteButton: UIButton) {
-    shareFlyer()
+    shareFlyer(deleteButton)
   }
     
-    func shareFlyer() {
+    func shareFlyer(_ sender: UIButton) {
         if images.count <= 0 {
             return
         }
@@ -468,6 +498,10 @@ extension LightboxController: HeaderViewDelegate {
             items.append(theImage)
         }
         let activityController = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        if let wPPC = activityController.popoverPresentationController {
+            wPPC.sourceView = sender
+            wPPC.sourceRect = sender.bounds
+        }
         present(activityController, animated: true, completion: nil)
     }
 
